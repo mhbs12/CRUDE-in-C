@@ -1,6 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <stdbool.h> 
 
 struct Aluno{
     char nome[50];
@@ -10,37 +10,53 @@ struct Aluno{
 
 int encontrar_aluno(int busca, int atual){
     if (busca == atual){
-        return true;
+        return 1;
     }else{
-        return false;
+        return 0;
     }
 }
 
-void novo_aluno(){
+int encontrar_duplicidade_alunos(int matricula, FILE *data){
+    struct Aluno aluno;
+    rewind(data);
+    while(fread(&aluno, sizeof(struct Aluno), 1, data) == 1){
+        if (aluno.matricula == matricula){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int novo_aluno(){
     struct Aluno aluno;
     FILE *data;
     printf("\nDigite o nome do aluno: "); scanf("%s", &aluno.nome);
     printf("\nDigite o numero de matricula: "); scanf("%d", &aluno.matricula);
     printf("\nDigite a nota: "); scanf("%f", &aluno.nota);
-    data = fopen("/home/mhbs/Documentos/ProjetoC/data/alunos.dat", "awb");
+    data = fopen("/home/mhbs/Documentos/ProjetoC/data/alunos.dat", "a+b");
     if (!data) {
         perror("Erro ao adicionar aluno");
-        return;
-    }else{
-        fwrite(&aluno, sizeof(struct Aluno), 1, data);
+        return 0;
+    }else if (encontrar_duplicidade_alunos(aluno.matricula, data)){
+        printf("\nO numero de matricula %d, ja esta sendo usado para o aluno %s\n\n", aluno.matricula, aluno.nome);
         fclose(data);
-        printf("Aluno adicionado com sucesso!!! \n");
+        return 0;
+    }else{ 
+            fwrite(&aluno, sizeof(struct Aluno), 1, data);
+            fclose(data);
+            printf("\nAluno adicionado com sucesso!!! \n\n");
     }
 }
 
 int deletar_aluno() {
+    char buscarMatriculaStr[10];
     int buscarMatricula = 0;
     char confirmacao[4];
     struct Aluno aluno;
     
     char serDeletadoNome[50];
     int serDeletadoMatricula = -1;
-    bool alunoEncontrado = false;
+    int alunoEncontrado = 0;
     const char *original = "/home/mhbs/Documentos/ProjetoC/data/alunos.dat";
     const char *temporario = "/home/mhbs/Documentos/ProjetoC/data/temp.dat";
     FILE *data = fopen(original, "rb");
@@ -55,18 +71,23 @@ int deletar_aluno() {
         fclose(data);
         return 0;
     }
+    getchar();
     printf("Digite o número de matrícula do aluno que você quer deletar ou tecle enter para voltar ao meu inicial: ");
-    scanf("%d", &buscarMatricula);
-    if (strcmp(buscarMatricula, "") == 0){
+    fgets(buscarMatriculaStr, sizeof(buscarMatriculaStr), stdin);
+    if (strcmp(buscarMatriculaStr, "\n") == 0){
+        fclose(data);
+        fclose(temp);
+        remove(temporario);
         return 0;
     }
+    buscarMatricula = atoi(buscarMatriculaStr);
     while (fread(&aluno, sizeof(struct Aluno), 1, data)) {
-        if (encontrar_aluno(buscarMatricula, aluno.matricula) == false) {
+        if (encontrar_aluno(buscarMatricula, aluno.matricula) == 0) {
             fwrite(&aluno, sizeof(struct Aluno), 1, temp);
         } else {
             strcpy(serDeletadoNome, aluno.nome);
             serDeletadoMatricula = aluno.matricula;
-            alunoEncontrado = true;
+            alunoEncontrado = 1;
         }
     }
     fclose(data);
@@ -95,6 +116,30 @@ int deletar_aluno() {
         remove(temporario);
         return 0; 
     }
+}
+
+int buscar_aluno(){
+    int matricula = 0;
+    struct Aluno aluno;
+    FILE *data = fopen("/home/mhbs/Documentos/ProjetoC/data/alunos.dat", "rb");
+    if(!data){
+        perror("Erro ao abrir arquivo\n");
+        return 0;
+    }
+    printf("Digite a matricula do aluno: "); scanf("%d", &matricula);
+    while(fread(&aluno, sizeof(struct Aluno), 1, data) == 1){
+        if(aluno.matricula == matricula){
+            printf("---------------------------------------------------------\n");
+            printf("\nAluno encontrado!!!\n");
+            printf("Nome: %s\n", aluno.nome);
+            printf("Matrícula: %d\n", aluno.matricula);
+            printf("Nota: %.2f\n", aluno.nota);
+            printf("---------------------------------------------------------\n");
+            fclose(data);
+        }
+    }
+    fclose(data);
+    return 0;
 }
 
 /* void alterar_aluno(){
@@ -148,11 +193,12 @@ void listar_alunos(){
 int main(){
     int option = 0;
     while(option == 0){
-        printf("Por favor, digite um dos numeros abaixo: \n");
+        printf("\nPor favor, digite um dos numeros abaixo: \n");
         printf("Digite 1 para adicionar um aluno. \n");
         printf("Digite 2 para deletar um aluno. \n");
-        printf("Digite 3 para listar todos os alunos. \n");
-        printf("Digite 4 para sair. \n");
+        printf("Digite 3 para buscar um aluno. \n");
+        printf("Digite 4 para listar todos os alunos. \n");
+        printf("Digite 5 para sair. \n");
         scanf("%d", &option);
         switch(option){
             case 1:
@@ -167,10 +213,14 @@ int main(){
                 option = 0;
                 break;
             case 3:
-                listar_alunos();
+                buscar_aluno();
                 option = 0;
                 break;
             case 4:
+                listar_alunos();
+                option = 0;
+                break;
+            case 5:
                 return 0;
             default:
                 printf("POR FAVOR, DIGITE UM NUMERO VALIDO!!!!\n");
