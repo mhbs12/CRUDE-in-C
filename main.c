@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+const char *cData = "/home/mhbs/Documentos/CRUDE-in-C/data/alunos.dat";
+const char *cTemp = "/home/mhbs/Documentos/CRUDE-in-C/data/temp.dat";
+
 struct Aluno{
     char nome[50];
     int matricula;
@@ -42,7 +45,7 @@ int encontrar_duplicidade_nome(char nome[50], FILE *data){
 
 int novo_aluno(){
     struct Aluno aluno;
-    FILE *data = fopen("/home/mhbs/Documentos/ProjetoC/data/alunos.dat", "a+b");
+    FILE *data = fopen(cData, "a+b");
     if (!data) {
         perror("Erro ao adicionar aluno");
         return 0;
@@ -69,15 +72,13 @@ int deletar_aluno() {
     char serDeletadoNome[50];
     int serDeletadoMatricula = -1;
     int alunoEncontrado = 0;
-    const char *original = "/home/mhbs/Documentos/ProjetoC/data/alunos.dat";
-    const char *temporario = "/home/mhbs/Documentos/ProjetoC/data/temp.dat";
-    FILE *data = fopen(original, "rb");
+    FILE *data = fopen(cData, "rb");
     if (!data) {
         perror("Erro ao abrir o arquivo de alunos");
         return 0;
     }
 
-    FILE *temp = fopen(temporario, "wb");
+    FILE *temp = fopen(cTemp, "wb");
     if (!temp) {
         perror("Erro ao criar arquivo temporário");
         fclose(data);
@@ -88,7 +89,7 @@ int deletar_aluno() {
     if (strcmp(buscarMatriculaStr, "\n") == 0){
         fclose(data);
         fclose(temp);
-        remove(temporario);
+        remove(cTemp);
         return 0;
     }
     buscarMatricula = atoi(buscarMatriculaStr);
@@ -105,19 +106,19 @@ int deletar_aluno() {
     fclose(temp);
     if (!alunoEncontrado) {
         printf("Aluno com matrícula %d não encontrado.\n", buscarMatricula);
-        remove(temporario);
+        remove(cTemp);
         return 2;
     }
     printf("\nAluno encontrado: %s, Matrícula: %d\n", serDeletadoNome, serDeletadoMatricula);
     printf("Você tem certeza que deseja excluí-lo? (Digite 'Sim' para confirmar e 'Nao' para cancelar): ");
     scanf("%3s", confirmacao);
     if (strcmp(confirmacao, "Sim") == 0 || strcmp(confirmacao, "sim") == 0) {
-        if (remove(original) != 0) {
+        if (remove(cData) != 0) {
             perror("Erro: Não foi possível remover o arquivo original");
-            remove(temporario); 
+            remove(cTemp); 
             return 0;
         }
-        if (rename(temporario, original) != 0) {
+        if (rename(cTemp, cData) != 0) {
             perror("Erro: Não foi possível renomear o arquivo temporário. O arquivo original foi perdido!");
             return 0;
         }
@@ -126,7 +127,7 @@ int deletar_aluno() {
         printf("---------------------------------------------------------\n");
     } else {
         printf("Exclusão cancelada pelo usuário.\n");
-        remove(temporario);
+        remove(cTemp);
         return 2; 
     }
 }
@@ -134,7 +135,7 @@ int deletar_aluno() {
 int buscar_aluno(){
     int matricula = 0;
     struct Aluno aluno;
-    FILE *data = fopen("/home/mhbs/Documentos/ProjetoC/data/alunos.dat", "rb");
+    FILE *data = fopen(cData, "rb");
     if(!data){
         perror("Erro ao abrir arquivo\n");
         return 0;
@@ -163,7 +164,7 @@ int buscar_aluno(){
 
     struct Aluno aluno;
     FILE *data;
-     data = fopen("/home/mhbs/Documentos/ProjetoC/data/alunos.dat", "awr");
+     data = fopen(cData, "awr");
     if (!data) {
         perror("Erro ao adicionar aluno");
         return;
@@ -186,7 +187,7 @@ int buscar_aluno(){
 void listar_alunos(){
     struct Aluno aluno; 
     FILE *data;
-    data = fopen("/home/mhbs/Documentos/ProjetoC/data/alunos.dat", "rb");
+    data = fopen(cData, "rb");
     if (!data) {
         perror("Erro ao abrir o arquivo");
         return;
