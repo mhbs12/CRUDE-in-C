@@ -16,11 +16,24 @@ int encontrar_aluno(int busca, int atual){
     }
 }
 
-int encontrar_duplicidade_alunos(int matricula, FILE *data){
+int encontrar_duplicidade_matricula(int matricula, FILE *data){
     struct Aluno aluno;
     rewind(data);
     while(fread(&aluno, sizeof(struct Aluno), 1, data) == 1){
         if (aluno.matricula == matricula){
+            printf("\nO numero de matricula %d, ja esta sendo usado para o aluno %s\n\n", aluno.matricula, aluno.nome);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int encontrar_duplicidade_nome(char nome[50], FILE *data){
+    struct Aluno aluno;
+    rewind(data);
+    while(fread(&aluno, sizeof(struct Aluno), 1, data) == 1){
+        if (!strcmp(aluno.nome, nome)){
+            printf("\nJa existe um aluno cadastrado com o exato nome de %s, e de matricula %d\n\n", aluno.nome, aluno.matricula);
             return 1;
         }
     }
@@ -29,31 +42,30 @@ int encontrar_duplicidade_alunos(int matricula, FILE *data){
 
 int novo_aluno(){
     struct Aluno aluno;
-    FILE *data;
-    printf("\nDigite o nome do aluno: "); scanf("%s", &aluno.nome);
-    printf("\nDigite o numero de matricula: "); scanf("%d", &aluno.matricula);
-    printf("\nDigite a nota: "); scanf("%f", &aluno.nota);
-    data = fopen("/home/mhbs/Documentos/ProjetoC/data/alunos.dat", "a+b");
+    FILE *data = fopen("/home/mhbs/Documentos/ProjetoC/data/alunos.dat", "a+b");
     if (!data) {
         perror("Erro ao adicionar aluno");
         return 0;
-    }else if (encontrar_duplicidade_alunos(aluno.matricula, data)){
-        printf("\nO numero de matricula %d, ja esta sendo usado para o aluno %s\n\n", aluno.matricula, aluno.nome);
-        fclose(data);
-        return 0;
-    }else{ 
-            fwrite(&aluno, sizeof(struct Aluno), 1, data);
-            fclose(data);
-            printf("\nAluno adicionado com sucesso!!! \n\n");
     }
+    do{
+        printf("\nDigite o nome do aluno: "); fgets(aluno.nome, sizeof(aluno.nome), stdin);
+        aluno.nome[strcspn(aluno.nome, "\n")] = '\0';  
+    }while(encontrar_duplicidade_nome(aluno.nome, data));
+    do{
+        printf("\nDigite o numero de matricula: "); scanf("%d", &aluno.matricula);
+    }while(encontrar_duplicidade_matricula(aluno.matricula, data));
+    printf("\nDigite a nota: "); scanf("%f", &aluno.nota);
+    fwrite(&aluno, sizeof(struct Aluno), 1, data);
+    fclose(data);
+    printf("\nAluno adicionado com sucesso!!! \n\n");
 }
+
 
 int deletar_aluno() {
     char buscarMatriculaStr[10];
     int buscarMatricula = 0;
     char confirmacao[4];
     struct Aluno aluno;
-    
     char serDeletadoNome[50];
     int serDeletadoMatricula = -1;
     int alunoEncontrado = 0;
@@ -71,7 +83,6 @@ int deletar_aluno() {
         fclose(data);
         return 0;
     }
-    getchar();
     printf("Digite o número de matrícula do aluno que você quer deletar ou tecle enter para voltar ao meu inicial: ");
     fgets(buscarMatriculaStr, sizeof(buscarMatriculaStr), stdin);
     if (strcmp(buscarMatriculaStr, "\n") == 0){
@@ -98,7 +109,7 @@ int deletar_aluno() {
         return 2;
     }
     printf("\nAluno encontrado: %s, Matrícula: %d\n", serDeletadoNome, serDeletadoMatricula);
-    printf("Você tem certeza que deseja excluí-lo? (Digite 'Sim' para confirmar): ");
+    printf("Você tem certeza que deseja excluí-lo? (Digite 'Sim' para confirmar e 'Nao' para cancelar): ");
     scanf("%3s", confirmacao);
     if (strcmp(confirmacao, "Sim") == 0 || strcmp(confirmacao, "sim") == 0) {
         if (remove(original) != 0) {
@@ -110,11 +121,13 @@ int deletar_aluno() {
             perror("Erro: Não foi possível renomear o arquivo temporário. O arquivo original foi perdido!");
             return 0;
         }
-        printf("Aluno excluído com sucesso!\n");
+        printf("---------------------------------------------------------\n");
+        printf("\nAluno deletado com sucesso!\n");
+        printf("---------------------------------------------------------\n");
     } else {
         printf("Exclusão cancelada pelo usuário.\n");
         remove(temporario);
-        return 0; 
+        return 2; 
     }
 }
 
@@ -200,6 +213,8 @@ int main(){
         printf("Digite 4 para listar todos os alunos. \n");
         printf("Digite 5 para sair. \n");
         scanf("%d", &option);
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF);
         switch(option){
             case 1:
                 novo_aluno();
