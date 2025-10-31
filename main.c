@@ -24,7 +24,9 @@ int encontrar_duplicidade_matricula(int matricula, FILE *data){
     rewind(data);
     while(fread(&aluno, sizeof(struct Aluno), 1, data) == 1){
         if (aluno.matricula == matricula){
-            printf("\nO numero de matricula %d, ja esta sendo usado para o aluno %s\n\n", aluno.matricula, aluno.nome);
+            printf("\n---------------------------------------------------------\n");
+            printf("O numero de matricula %d, ja esta sendo usado para o aluno %s\n", aluno.matricula, aluno.nome);
+            printf("---------------------------------------------------------\n");
             return 1;
         }
     }
@@ -36,7 +38,9 @@ int encontrar_duplicidade_nome(char nome[50], FILE *data){
     rewind(data);
     while(fread(&aluno, sizeof(struct Aluno), 1, data) == 1){
         if (!strcmp(aluno.nome, nome)){
-            printf("\nJa existe um aluno cadastrado com o exato nome de %s, e de matricula %d\n\n", aluno.nome, aluno.matricula);
+            printf("\n---------------------------------------------------------\n");
+            printf("Ja existe um aluno cadastrado com o exato nome de %s, e de matricula %d\n", aluno.nome, aluno.matricula);
+            printf("---------------------------------------------------------\n");
             return 1;
         }
     }
@@ -47,12 +51,15 @@ int novo_aluno(){
     struct Aluno aluno;
     FILE *data = fopen(cData, "a+b");
     if (!data) {
-        perror("Erro ao adicionar aluno");
+        perror("Erro ao adicionar aluno.");
         return 0;
     }
     do{
-        printf("\nDigite o nome do aluno: "); fgets(aluno.nome, sizeof(aluno.nome), stdin);
-        aluno.nome[strcspn(aluno.nome, "\n")] = '\0';  
+        printf("\nDigite o nome do aluno ou tecle enter para voltar ao menu inicial: "); fgets(aluno.nome, sizeof(aluno.nome), stdin);
+        aluno.nome[strcspn(aluno.nome, "\n")] = '\0'; 
+        if (strlen(aluno.nome) == 0) {
+            return 0;
+        }  
     }while(encontrar_duplicidade_nome(aluno.nome, data));
     do{
         printf("\nDigite o numero de matricula: "); scanf("%d", &aluno.matricula);
