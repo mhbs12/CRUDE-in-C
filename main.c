@@ -70,11 +70,10 @@ int novo_aluno(){
     printf("\nAluno adicionado com sucesso!!! \n\n");
 }
 
-
 int deletar_aluno() {
     char buscarMatriculaStr[10];
     int buscarMatricula = 0;
-    char confirmacao[4];
+    char confirmacao[8];
     struct Aluno aluno;
     char serDeletadoNome[50];
     int serDeletadoMatricula = -1;
@@ -84,16 +83,16 @@ int deletar_aluno() {
         perror("Erro ao abrir o arquivo de alunos");
         return 0;
     }
-
     FILE *temp = fopen(cTemp, "wb");
     if (!temp) {
         perror("Erro ao criar arquivo temporário");
         fclose(data);
         return 0;
     }
-    printf("Digite o número de matrícula do aluno que você quer deletar ou tecle enter para voltar ao meu inicial: ");
+    printf("Digite o número de matrícula do aluno que você quer deletar ou tecle enter para voltar ao menu inicial: ");
     fgets(buscarMatriculaStr, sizeof(buscarMatriculaStr), stdin);
-    if (strcmp(buscarMatriculaStr, "\n") == 0){
+    buscarMatriculaStr[strcspn(buscarMatriculaStr, "\n")] = '\0';
+    if (strlen(buscarMatriculaStr) == 0) {
         fclose(data);
         fclose(temp);
         remove(cTemp);
@@ -118,25 +117,27 @@ int deletar_aluno() {
     }
     printf("\nAluno encontrado: %s, Matrícula: %d\n", serDeletadoNome, serDeletadoMatricula);
     printf("Você tem certeza que deseja excluí-lo? (Digite 'Sim' para confirmar e 'Nao' para cancelar): ");
-    scanf("%3s", confirmacao);
-    if (strcmp(confirmacao, "Sim") == 0 || strcmp(confirmacao, "sim") == 0) {
+    fgets(confirmacao, sizeof(confirmacao), stdin);
+    confirmacao[strcspn(confirmacao, "\n")] = '\0';
+    if (strcasecmp(confirmacao, "Sim") == 0) {
         if (remove(cData) != 0) {
             perror("Erro: Não foi possível remover o arquivo original");
-            remove(cTemp); 
+            remove(cTemp);
             return 0;
         }
         if (rename(cTemp, cData) != 0) {
-            perror("Erro: Não foi possível renomear o arquivo temporário. O arquivo original foi perdido!");
+            perror("Erro: Não foi possível renomear o arquivo temporário!");
             return 0;
         }
-        printf("---------------------------------------------------------\n");
-        printf("\nAluno deletado com sucesso!\n");
+        printf("\n---------------------------------------------------------\n");
+        printf("Aluno deletado com sucesso!\n");
         printf("---------------------------------------------------------\n");
     } else {
         printf("Exclusão cancelada pelo usuário.\n");
         remove(cTemp);
-        return 2; 
+        return 2;
     }
+    return 0;
 }
 
 int buscar_aluno(){
@@ -156,7 +157,6 @@ int buscar_aluno(){
             printf("Matrícula: %d\n", aluno.matricula);
             printf("Nota: %.2f\n", aluno.nota);
             printf("---------------------------------------------------------\n");
-            fclose(data);
         }
     }
     fclose(data);
@@ -206,9 +206,9 @@ void listar_alunos(){
             printf("Nota: %.2f\n", aluno.nota);
             printf("---------------------------------------------------------\n");
         }
-        fclose(data);
+        
     }
-
+    fclose(data);
 }
 
 int main(){
