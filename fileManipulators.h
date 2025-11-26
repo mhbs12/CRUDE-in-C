@@ -8,5 +8,6 @@ int novo_aluno();
 int deletar_aluno();
 int buscar_aluno();
 void listar_alunos();
+void alterar_aluno();
 
 #endif

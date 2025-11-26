@@ -11,7 +11,8 @@ int main(){
         printf("Digite 2 para deletar um aluno. \n");
         printf("Digite 3 para buscar um aluno. \n");
         printf("Digite 4 para listar todos os alunos. \n");
-        printf("Digite 5 para sair. \n");
+        printf("Digite 5 alterar um aluno. \n");
+        printf("Digite 6 para sair do programa\n");
         scanf("%d", &option);
         int c;
         while ((c = getchar()) != '\n' && c != EOF);
@@ -36,6 +37,10 @@ int main(){
                 option = 0;
                 break;
             case 5:
+                alterar_aluno();
+                option = 0;
+                break;
+            case 6:
                 return 0;
             default:
                 printf("POR FAVOR, DIGITE UM NUMERO VALIDO!!!!\n");
